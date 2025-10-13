@@ -12,12 +12,20 @@ import './config/passport.js';
 const app = express();
 
 // Enhanced CORS configuration for mobile and cross-origin support
-const clientOrigins = [
+// You can provide a comma-separated list via ALLOWED_ORIGINS or CLIENT_BASE_URLS
+const envOrigins = (process.env.ALLOWED_ORIGINS || process.env.CLIENT_BASE_URLS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const clientOrigins = Array.from(new Set([
   process.env.CLIENT_BASE_URL || 'http://localhost:3000',
+  ...envOrigins,
   'http://localhost:3001',
   'https://travel-agency-app.vercel.app',
-  'https://travel-go-app.netlify.app'
-];
+  'https://travel-go-app.netlify.app',
+  'https://travelgo-by-hp.netlify.app'
+]));
 
 app.use(cors({
   origin: clientOrigins,
@@ -67,6 +75,16 @@ app.use(morgan('combined', {
 }));
 
 app.use(passport.initialize());
+
+// Friendly root route for platform health checks
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'Travel Agency API',
+    status: 'ok',
+    docs: '/api',
+    health: '/api/health'
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
