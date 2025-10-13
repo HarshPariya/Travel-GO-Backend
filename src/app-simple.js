@@ -25,7 +25,8 @@ const clientOrigins = Array.from(new Set([
   // Known deployments
   'https://travel-agency-app.vercel.app',
   'https://travel-go-app.netlify.app',
-  'https://travelgo-by-hp.netlify.app'
+  'https://travelgo-by-hp.netlify.app',
+  'https://travelgo-by-hp01.netlify.app'
 ]));
 
 const corsOptions = {

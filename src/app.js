@@ -24,16 +24,28 @@ const clientOrigins = Array.from(new Set([
   'http://localhost:3001',
   'https://travel-agency-app.vercel.app',
   'https://travel-go-app.netlify.app',
-  'https://travelgo-by-hp.netlify.app'
+  'https://travelgo-by-hp.netlify.app',
+  'https://travelgo-by-hp01.netlify.app'
 ]));
 
-app.use(cors({ 
-  origin: clientOrigins, 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (clientOrigins.includes(origin)) return callback(null, true);
+    const allowedPatterns = [
+      /^https?:\/\/.*--.*\.netlify\.app$/i,
+      /^https?:\/\/.+\.vercel\.app$/i,
+    ];
+    if (allowedPatterns.some((re) => re.test(origin))) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200
-}));
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 // Enhanced security headers for mobile compatibility
 app.use(helmet({
