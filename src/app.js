@@ -22,9 +22,6 @@ const clientOrigins = Array.from(new Set([
   process.env.CLIENT_BASE_URL || 'http://localhost:3000',
   ...envOrigins,
   'http://localhost:3001',
-  'https://travel-agency-app.vercel.app',
-  'https://travel-go-app.netlify.app',
-  'https://travelgo-by-hp.netlify.app',
   'https://travelgo-by-hp01.netlify.app'
 ]));
 
@@ -90,6 +87,11 @@ app.use(morgan('combined', {
 }));
 
 app.use(passport.initialize());
+
+// Redirect root to frontend website so users see the UI instead of API JSON
+app.get('/', (req, res) => {
+  res.redirect(302, process.env.CLIENT_BASE_URL || 'https://travelgo-by-hp01.netlify.app/');
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

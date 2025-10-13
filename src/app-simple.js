@@ -23,9 +23,9 @@ const clientOrigins = Array.from(new Set([
   ...envOrigins,
   'http://localhost:3001',
   // Known deployments
-  'https://travel-agency-app.vercel.app',
-  'https://travel-go-app.netlify.app',
-  'https://travelgo-by-hp.netlify.app',
+  // 'https://travel-agency-app.vercel.app',
+  // 'https://travel-go-app.netlify.app',
+  // 'https://travelgo-by-hp.netlify.app',
   'https://travelgo-by-hp01.netlify.app'
 ]));
 
@@ -90,14 +90,9 @@ app.use(morgan('combined', {
 
 app.use(passport.initialize());
 
-// Friendly root route for platform health checks
+// Redirect root to frontend website so users see the UI instead of API JSON
 app.get('/', (req, res) => {
-  res.status(200).json({
-    name: 'Travel Agency API',
-    status: 'ok',
-    docs: '/api',
-    health: '/api/health'
-  });
+  res.redirect(302, process.env.CLIENT_BASE_URL || 'https://travelgo-by-hp01.netlify.app/');
 });
 
 // Health check endpoint
