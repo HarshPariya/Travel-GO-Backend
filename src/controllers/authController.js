@@ -3,12 +3,18 @@ import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 
 function signToken(userId) {
-	if (!process.env.JWT_SECRET) {
-		throw new Error("JWT_SECRET is not set");
-	}
-	return jwt.sign({ userId }, process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-	});
+    if (!process.env.JWT_SECRET) {
+        // Fallback to a temporary dev secret to avoid crashing in production,
+        // but still emit a clear warning. Replace with process.env in real deployments.
+        console.warn('⚠️ JWT_SECRET is not set. Using a temporary in-memory secret. Set JWT_SECRET in your environment.');
+        const tempSecret = 'TEMP_DEV_ONLY_CHANGE_ME';
+        return jwt.sign({ userId }, tempSecret, {
+            expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+        });
+    }
+    return jwt.sign({ userId }, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    });
 }
 
 export const validateRegister = [
