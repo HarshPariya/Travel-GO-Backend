@@ -35,11 +35,7 @@ const corsOptions = {
     if (clientOrigins.includes(origin)) return callback(null, true);
     // Allow common preview subdomains on Netlify/Vercel
     const allowedPatterns = [
-      // Netlify deploy previews
       /^https?:\/\/.*--.*\.netlify\.app$/i,
-      // Netlify production subdomains
-      /^https?:\/\/.+\.netlify\.app$/i,
-      // Vercel
       /^https?:\/\/.+\.vercel\.app$/i,
     ];
     if (allowedPatterns.some((re) => re.test(origin))) return callback(null, true);
@@ -52,8 +48,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// Explicitly handle CORS preflight
-app.options('*', cors(corsOptions));
 
 // Enhanced security headers for mobile compatibility
 app.use(helmet({
@@ -64,13 +58,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: [
-        "'self'",
-        "https://api.mapbox.com",
-        "https://travelgo-by-hp01.netlify.app",
-        process.env.CORS_API_BASE || 'https://travel-go-backend.onrender.com',
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'https://travel-go-backend.onrender.com/api'
-      ],
+      connectSrc: ["'self'", "https://api.mapbox.com"],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
