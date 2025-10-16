@@ -69,6 +69,8 @@ app.use(helmet({
 app.use(express.json({ 
   limit: '10mb',
   verify: (req, res, buf) => {
+    // Only validate when there is a body
+    if (!buf || buf.length === 0) return;
     try {
       JSON.parse(buf);
     } catch (e) {

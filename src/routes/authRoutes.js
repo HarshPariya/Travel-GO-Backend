@@ -27,7 +27,10 @@ router.get(
 );
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || "http://localhost:3000/login",
+  }),
   googleCallback
 );
 
