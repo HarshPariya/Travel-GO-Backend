@@ -60,7 +60,17 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://api.mapbox.com"],
+      // Allow API connectivity from the frontend to the backend
+      connectSrc: [
+        "'self'",
+        "https://api.mapbox.com",
+        // Frontend on Netlify
+        "https://travelgo-by-hp01.netlify.app",
+        // Backend API base (Render or custom)
+        process.env.CORS_API_BASE || 'https://travel-go-backend.onrender.com',
+        // Explicitly allow the API path if specified
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'https://travel-go-backend.onrender.com/api'
+      ],
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
