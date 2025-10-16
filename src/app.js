@@ -30,7 +30,11 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     if (clientOrigins.includes(origin)) return callback(null, true);
     const allowedPatterns = [
+      // Netlify deploy previews: https://deploy-preview-123--site-name.netlify.app
       /^https?:\/\/.*--.*\.netlify\.app$/i,
+      // Netlify main sites: https://site-name.netlify.app
+      /^https?:\/\/.+\.netlify\.app$/i,
+      // Vercel: https://project.vercel.app
       /^https?:\/\/.+\.vercel\.app$/i,
     ];
     if (allowedPatterns.some((re) => re.test(origin))) return callback(null, true);
@@ -43,6 +47,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Explicitly handle preflight for all routes
+app.options('*', cors(corsOptions));
 
 // Enhanced security headers for mobile compatibility
 app.use(helmet({
