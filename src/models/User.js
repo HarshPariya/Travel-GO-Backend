@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tour'
       },
+      reference: { type: String },
       bookingDate: {
         type: Date,
         default: Date.now
@@ -26,6 +27,13 @@ const userSchema = new mongoose.Schema(
         type: Number,
         required: true
       },
+      guestDetails: [
+        {
+          name: String,
+          email: String,
+          phone: String,
+        }
+      ],
       totalPrice: {
         type: Number,
         required: true
