@@ -20,19 +20,23 @@ const router = Router();
 router.post("/register", validateRegister, register);
 router.post("/login", validateLogin, login);
 
-// ✅ Google OAuth routes
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || "http://localhost:3000/login",
-  }),
-  googleCallback
-);
+// ✅ Google OAuth routes (only if credentials are configured)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get(
+    "/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+  router.get(
+    "/google/callback",
+    passport.authenticate("google", {
+      session: false,
+      failureRedirect: process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || "http://localhost:3000/login",
+    }),
+    googleCallback
+  );
+} else {
+  console.warn('⚠️ Skipping Google OAuth routes: credentials not set');
+}
 
 // Protected routes
 router.get("/me", requireAuth, me);
