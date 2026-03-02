@@ -22,6 +22,12 @@ router.post("/login", validateLogin, login);
 
 // ✅ Google OAuth routes (only if credentials are configured)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  // derive a cleaned frontend base similar to authController
+  const frontendBase =
+    (process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || "http://localhost:3000")
+      .replace(/\/+$/g, "")
+      .replace(/\/auth$/i, "");
+
   router.get(
     "/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
@@ -30,7 +36,8 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     "/google/callback",
     passport.authenticate("google", {
       session: false,
-      failureRedirect: process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || "http://localhost:3000/login",
+      // send user back to the login page (not the root) on failure
+      failureRedirect: `${frontendBase}/auth`,
     }),
     googleCallback
   );

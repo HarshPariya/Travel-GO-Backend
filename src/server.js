@@ -13,7 +13,23 @@ async function startServer() {
   try {
     console.log('🚀 Starting Travel Agency API Server...');
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-    
+
+    // debug configuration
+    console.log('🔧 FRONTEND_URL=', process.env.FRONTEND_URL);
+    console.log('🔧 CLIENT_BASE_URL=', process.env.CLIENT_BASE_URL);
+    console.log('🔧 GOOGLE_CALLBACK_URL=', process.env.GOOGLE_CALLBACK_URL);
+
+    if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.endsWith('/auth')) {
+      console.warn('⚠️ FRONTEND_URL ends with /auth; remove that suffix to avoid duplicated paths.');
+    }
+    if (
+      process.env.NODE_ENV === 'production' &&
+      process.env.GOOGLE_CALLBACK_URL &&
+      process.env.GOOGLE_CALLBACK_URL.includes('localhost')
+    ) {
+      console.warn('⚠️ GOOGLE_CALLBACK_URL still points to localhost in production!');
+    }
+
     // Connect to MongoDB
     await connectToDatabase();
     

@@ -69,6 +69,28 @@ The application will automatically:
 - `GET /api/auth/google` - Initiate Google OAuth
 - `GET /api/auth/google/callback` - Google OAuth callback
 
+> The frontend now includes a `/login` route that simply redirects to `/auth`
+> so that any old links or failureRedirects still work.
+
+> 🔍 **Deployment checklist**
+>
+> 1. Set environment variables on your host (Netlify, Render, etc.):
+>    - `FRONTEND_URL` should be **just the origin** (`https://your-site.com`),
+>      no trailing path.  If you include `/auth` the redirect will become
+>      `/auth/auth/callback` and the login page won’t see the token.
+>    - `GOOGLE_CALLBACK_URL` must match the value registered in the Google
+>      Cloud console.  Use your deployed backend address, e.g.
+>      `https://api.yoursite.com/api/auth/google/callback`.
+>    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` obviously need to be set
+>      as well.
+>
+> 2. Restart the backend after changing vars.
+> 3. Inspect backend logs during sign‑in to confirm you see the
+>    `googleCallback redirecting to …` message.
+> 4. The server now redirects to `/auth` on failure; previously it sent
+>    people to `/login`, which doesn’t exist in the frontend, making it
+>    look like the login page had disappeared.
+
 > ⚠️ **Environment variable gotcha:** `FRONTEND_URL` should be the root
 > of your client app (e.g. `https://travelgo-by-hp01.netlify.app`).  The
 > server will append `/auth/callback` itself.  Including `/auth` in the
