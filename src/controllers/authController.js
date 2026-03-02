@@ -80,10 +80,14 @@ export const googleCallback = async (req, res) => {
         // Build redirect URL pointing at the frontend application.  We prefer
         // an explicit FRONTEND_URL variable in production, fall back to the
         // client base URL env var or localhost for development.
+        // make sure the base URL doesn’t accidentally include a trailing slash
+        // or a duplicated `/auth` segment from a misconfigured FRONTEND_URL env var.
         const frontendBase =
-            process.env.FRONTEND_URL ||
-            process.env.CLIENT_BASE_URL ||
-            'http://localhost:3000';
+            (process.env.FRONTEND_URL ||
+                process.env.CLIENT_BASE_URL ||
+                'http://localhost:3000')
+                .replace(/\/+$/g, '') // strip trailing slashes
+                .replace(/\/auth$/i, ''); // remove trailing `/auth` if the user added it by mistake
 
         // Final redirect sequence once the user has signed in via Google:
         //

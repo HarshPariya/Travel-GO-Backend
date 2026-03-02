@@ -69,6 +69,12 @@ The application will automatically:
 - `GET /api/auth/google` - Initiate Google OAuth
 - `GET /api/auth/google/callback` - Google OAuth callback
 
+> ⚠️ **Environment variable gotcha:** `FRONTEND_URL` should be the root
+> of your client app (e.g. `https://travelgo-by-hp01.netlify.app`).  The
+> server will append `/auth/callback` itself.  Including `/auth` in the
+> variable used to cause double‑`/auth/auth` redirects, which made the
+> frontend callback page ignore the token.
+
 ## 🛠️ Development
 
 ### Scripts

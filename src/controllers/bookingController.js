@@ -17,44 +17,86 @@ export async function createBooking(req, res) {
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { tourId, fullName, email, phone, guests, date, notes, guestDetails } = req.body;
-  const tour = await Tour.findById(tourId);
-  if (!tour) return res.status(404).json({ message: 'Tour not found' });
 
-  const totalPrice = tour.price * Number(guests || 1);
-
-  // generate a reference code if not already generated
-  const ref = `TGO-${Date.now().toString().slice(-6)}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
-
-  // clean guest details: only include entries with name or email
-  const cleanGuests = Array.isArray(guestDetails)
-    ? guestDetails.filter(g => (g.name && g.name.trim()) || (g.email && g.email.trim()))
-    : [];
-
-  const bookingData = {
-    tour: tour._id,
-    reference: ref,
-    fullName,
-    email,
-    phone,
-    guests,
-    guestDetails: cleanGuests,
-    date,
-    notes,
-    totalPrice,
-  };
-  // if the user is authenticated, record it on the booking and update their history
-  if (req.user && req.user._id) {
-    bookingData.user = req.user._id;
-  }
-
-  let booking;
   try {
-    booking = await Booking.create(bookingData);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(400).json({ message: 'Validation failed', errors: err.errors });
+    const tour = await Tour.findById(tourId);
+    if (!tour) return res.status(404).json({ message: 'Tour not found' });
+
+    const totalPrice = tour.price * Number(guests || 1);
+
+    // generate a reference code if not already generated
+    const ref = `TGO-${Date.now().toString().slice(-6)}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+
+    // clean guest details: only include entries with name or email
+    const cleanGuests = Array.isArray(guestDetails)
+      ? guestDetails.filter(g => (g.name && g.name.trim()) || (g.email && g.email.trim()))
+      : [];
+
+    const bookingData = {
+      tour: tour._id,
+      reference: ref,
+      fullName,
+      email,
+      phone,
+      guests,
+      guestDetails: cleanGuests,
+      date,
+      notes,
+      totalPrice,
+    };
+    // if the user is authenticated, record it on the booking and update their history
+    if (req.user && req.user._id) {
+      bookingData.user = req.user._id;
     }
-    throw err; // let outer handler catch it
+
+    let booking;
+    try {
+      booking = await Booking.create(bookingData);
+    } catch (err) {
+      if (err.name === 'ValidationError') {
+        return res.status(400).json({ message: 'Validation failed', errors: err.errors });
+      }
+      console.error('Booking creation error:', err);
+      throw err; // let outer handler catch it
+    }
+
+    if (req.user && req.user._id) {
+      // push to user's booking history
+      const user = await User.findById(req.user._id);
+      if (user) {
+        user.bookingHistory.push({
+          tour: tour._id,
+          reference: ref,
+          bookingDate: booking.createdAt,
+          travelers: guests,
+          guestDetails: bookingData.guestDetails || [],
+          totalPrice,
+          status: booking.status,
+        });
+        await user.save();
+      }
+    }
+
+    // respond with booking and email results
+    const html = `
+      <h2>Booking Request Received</h2>
+      <p>Hi ${fullName},</p>
+      <p>Thanks for your booking request for <strong>${tour.title}</strong> on <strong>${new Date(date).toDateString()}</strong>.</p>
+      <p>Guests: ${guests} | Total: ₹${totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+      <p>Your reference number is <strong>${ref}</strong>.</p>
+      <p>We will confirm your booking shortly and send a follow-up email.</p>
+    `;
+
+    const results = await Promise.allSettled([
+      sendEmail({ to: email, subject: 'Your Booking Request', html }),
+      sendEmail({ to: process.env.SMTP_FROM || 'no-reply@example.com', subject: 'New Booking Request', html }),
+    ]);
+
+    res.status(201).json({ booking, emailResults: results.map(r => (r.value ? r.value.previewUrl : null)) });
+  } catch (err) {
+    console.error('Unhandled error in createBooking:', err);
+    // forward to global error handler; the middleware will pick up `err.message`
+    throw err;
   }
 
   if (req.user && req.user._id) {
