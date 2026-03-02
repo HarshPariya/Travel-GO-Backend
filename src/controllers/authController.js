@@ -67,22 +67,37 @@ export async function me(req, res) {
 
 // ✅ Google OAuth callback
 export const googleCallback = async (req, res) => {
-	try {
-		// At this point, passport strategy already resolved/created the DB user
-		const dbUser = req.user;
+    try {
+        // Passport has already looked up/created the user and attached it to req.user
+        const dbUser = req.user;
 
-		if (!dbUser || !dbUser._id) {
-			return res.status(401).json({ message: 'Google authentication failed' });
-		}
+        if (!dbUser || !dbUser._id) {
+            return res.status(401).json({ message: 'Google authentication failed' });
+        }
 
-    const token = signToken(dbUser._id);
+        const token = signToken(dbUser._id);
 
-    // Redirect to frontend with JWT token
-    const frontendBase = process.env.FRONTEND_URL || process.env.CLIENT_BASE_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendBase}/auth/callback?token=${token}`);
-	} catch (error) {
-		return res.status(500).json({ message: 'Google login failed', error: error.message });
-	}
+        // Build redirect URL pointing at the frontend application.  We prefer
+        // an explicit FRONTEND_URL variable in production, fall back to the
+        // client base URL env var or localhost for development.
+        const frontendBase =
+            process.env.FRONTEND_URL ||
+            process.env.CLIENT_BASE_URL ||
+            'http://localhost:3000';
+
+        // Final redirect sequence once the user has signed in via Google:
+        //
+        // Browser → https://travel-go-backend.onrender.com/api/auth/google
+        //     → Google login → https://travel-go-backend.onrender.com/api/auth/google/callback?...
+        //     → Backend issues JWT → Redirect to
+        //         https://travel-go-frontend.onrender.com/auth/callback?token=…
+        //
+        // The frontend callback page reads the token query param and completes
+        // the login process client‑side.
+        return res.redirect(`${frontendBase}/auth/callback?token=${token}`);
+    } catch (error) {
+        return res.status(500).json({ message: 'Google login failed', error: error.message });
+    }
 };
 
 // ✅ Profile functions (unchanged)
